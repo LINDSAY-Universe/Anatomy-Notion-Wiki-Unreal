@@ -11,7 +11,8 @@ const apiKey = process.env.NOTION_KEY
 
 const notion = new Client({ auth: apiKey })
 
-const databaseId = "16cb144fbbc5808f953df3f9266e75a9"
+//const databaseId = "16cb144fbbc5808f953df3f9266e75a9"
+const databaseId = "1edb144fbbc580b88cb7de45f5f164c6"
 
 const systemTag = "Skeletal"
 //const mainTag = "Skull"
