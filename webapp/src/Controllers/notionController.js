@@ -17,10 +17,11 @@ const databaseId = "1edb144fbbc580b88cb7de45f5f164c6"
 const systemTag = "Skeletal"
 //const mainTag = "Skull"
 const mainTag = ""
-const systemList = ["Skeletal", "Muscular", "Nervous"]
+//const systemList = ["Skeletal", "Muscular", "Nervous"]
+const systemList = ["Muscular"]
 //const mainLists = [["Skull", "Spinal", ""]]
 var systemCount = 0;
-
+var systemComplete = false;
 let fullBodyText = "";
 
 /* 
@@ -55,11 +56,15 @@ async function queryDatabase(databaseId, system) {
       console.log("Model Tag Name: " + modelTag);
 
       getPageProperties(page.id, modelTag);
-
     }));
-    //console.log("Page ID: " + page.properties['Model Tags'].multi_select[0].name);
 
+    //console.log("Page ID: " + page.properties['Model Tags'].multi_select[0].name);
   }));
+
+  // systemComplete = 
+  // if(systemComplete){
+  //   console.log(system + " System QUERY AND WRITE COMPLETED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+  // }
 
   //console.log(anatomyWikiDB)
 
@@ -75,6 +80,7 @@ async function queryDatabase(databaseId, system) {
 
   await queryNotionDB();
   //console.log("Query Database #: "+ systemCount);
+
 }
 
 async function getPageProperties(pageid, modelTag) {

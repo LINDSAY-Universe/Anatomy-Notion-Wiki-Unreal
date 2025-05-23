@@ -83,7 +83,7 @@ async function updateDB(){
 }
 
 export async function querySqlDB(mainTag, modelTag, fullTitleText) {
-    console.log("Querying MySql database...")
+    console.log("Writing to MySql database...")
     writeToDB(mainTag, modelTag, fullTitleText);
     //updateDB();
 }
