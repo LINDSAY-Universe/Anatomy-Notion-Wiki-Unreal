@@ -4,7 +4,23 @@ import { config } from "dotenv"
 config()
 
 import { querySqlDB } from "./sqlController.js";
+//import express from "express";
 import { response } from "express";
+//import { slowDown } from 'express-slow-down'
+
+// const app = express();
+// const limiter = slowDown({
+// 	windowMs: 15 * 60 * 1000, // 15 minutes
+// 	delayAfter: 1,
+// 	delayMs: (hits) => hits * 3340,
+//   handler: (req, res, next) => {
+//     console.log(`Delaying request from ${req.ip}`);
+//     next();
+//   },
+// })
+
+// // Apply the delay middleware to all requests.
+// app.use(limiter)
 
 const pageId = process.env.NOTION_PAGE_ID
 const apiKey = process.env.NOTION_KEY
@@ -18,7 +34,7 @@ const systemTag = "Skeletal"
 //const mainTag = "Skull"
 const mainTag = ""
 //const systemList = ["Skeletal", "Muscular", "Nervous"]
-const systemList = ["Muscular"]
+const systemList = ["Skeletal", "Muscular"]
 //const mainLists = [["Skull", "Spinal", ""]]
 var systemCount = 0;
 var systemComplete = false;
@@ -29,7 +45,7 @@ let fullBodyText = "";
 */
 
 async function queryDatabase(databaseId, system) {
-  console.log("Querying Notion database...")
+  //console.log("Querying Notion database...")
   // This query will filter database entries and return pages that match. Use multiple filters with the AND/OR options: https://developers.notion.com/reference/post-database-query-filter.
   const anatomyWikiDB = await notion.databases.query({
     database_id: databaseId,
@@ -48,23 +64,24 @@ async function queryDatabase(databaseId, system) {
 
   await Promise.all(anatomyWikiDB.results.map(async page => {
     // Page ID
-    console.log("Page ID: " + page.id);
+    //console.log("Page ID: " + page.id);
 
     // Model Tags
-    await Promise.all(page.properties['Model Tags'].multi_select.map(model_tag_name => {
+    let pagePromise = await Promise.all(page.properties['Model Tags'].multi_select.map(model_tag_name => {
       var modelTag = model_tag_name.name;
-      console.log("Model Tag Name: " + modelTag);
-
+      //console.log("Model Tag Name: " + modelTag);
+      
       getPageProperties(page.id, modelTag);
-    }));
+    })).then(results => {
+        //console.log(system + " System QUERY AND WRITE PAGE INFO COMPLETED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+      })
+        .catch((error) => {
+          console.error(error);
+    });
 
     //console.log("Page ID: " + page.properties['Model Tags'].multi_select[0].name);
-  }));
 
-  // systemComplete = 
-  // if(systemComplete){
-  //   console.log(system + " System QUERY AND WRITE COMPLETED!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-  // }
+  }));
 
   //console.log(anatomyWikiDB)
 
@@ -81,6 +98,12 @@ async function queryDatabase(databaseId, system) {
   await queryNotionDB();
   //console.log("Query Database #: "+ systemCount);
 
+}
+
+function getPromiseState(promise) {
+  let state = "pending";
+  promise.then(() => state = "fulfilled", () => state = "rejected");
+  return () => state;
 }
 
 async function getPageProperties(pageid, modelTag) {
@@ -102,7 +125,7 @@ async function getPageProperties(pageid, modelTag) {
     // Check for SyncBlock content
     let syncedBlockID = response.results[0]?.synced_block?.synced_from?.block_id;
     if(syncedBlockID != null){
-      console.log("BLOCK_ID: "+syncedBlockID);
+      //console.log("BLOCK_ID: "+syncedBlockID);
 
         const response = await notion.blocks.children.list({
           block_id: syncedBlockID,
@@ -110,23 +133,23 @@ async function getPageProperties(pageid, modelTag) {
         });
 
         for(const itemIndex in response.results){
-          console.log("OBJECT:"+itemIndex);
+          //console.log("OBJECT:"+itemIndex);
 
           if(response.results[itemIndex]?.paragraph != null)
           {
-            console.log("PARAGRAPH!!!");
+            //console.log("PARAGRAPH!!!");
             try {
               let paragraphText = response.results[itemIndex].paragraph.rich_text[0].plain_text;
             } catch (error) {
               continue;
             }
-            console.log("Paragraph PLAIN_TXT: "+ response.results[itemIndex].paragraph.rich_text[0].plain_text);
+            //console.log("Paragraph PLAIN_TXT: "+ response.results[itemIndex].paragraph.rich_text[0].plain_text);
             fullBodyText = fullBodyText + response.results[itemIndex].paragraph.rich_text[0].plain_text + "\n";
           }
           else if(response.results[itemIndex]?.bulleted_list_item != null)
           {
-            console.log("BULLET POINT!!!");
-            console.log("Bullet PLAIN_TXT: "+ "• " + response.results[itemIndex].bulleted_list_item.rich_text[0].plain_text); 
+            //console.log("BULLET POINT!!!");
+            //console.log("Bullet PLAIN_TXT: "+ "• " + response.results[itemIndex].bulleted_list_item.rich_text[0].plain_text); 
             fullBodyText = fullBodyText + "• " + response.results[itemIndex].bulleted_list_item.rich_text[0].plain_text + "\n";
           }
         }
@@ -159,7 +182,7 @@ async function getPageProperties(pageid, modelTag) {
     fullTitleText = fullTitleText + page.plain_text;
   }));
 
-  console.log("FULL BODY TEXT: "+ fullBodyText);
+  //console.log("FULL BODY TEXT: "+ fullBodyText);
 
   if(fullBodyText != ""){
     fullTitleText = fullBodyText;
@@ -168,7 +191,7 @@ async function getPageProperties(pageid, modelTag) {
   // Write fetched Notion info to MySql DB
   querySqlDB(mainTag, modelTag, fullTitleText);
 
-  console.log("Page title: " + fullTitleText);
+  //console.log("Page title: " + fullTitleText);
 
   fullBodyText = "";
 

@@ -34,7 +34,7 @@ async function writeToDB(mainTag, modelTag, fullTitleText){
       
         // console.log(result);
         // console.log(fields);
-        console.log("***** INSERTED new MySql DB Entries: "+ modelTag +" "+ fullTitleText +"*****");
+        // console.log("***** INSERTED new MySql DB Entries: "+ modelTag +" "+ fullTitleText +"*****");
       } catch (err) {
         console.log(err);
       }
@@ -46,9 +46,9 @@ async function deleteAllDB(){
         // Prepared statement
         const [result, fields] = await connection.execute(sql);
       
-        console.log(result);
-        console.log(fields);
-        console.log("***** DELETED Previous MySql DB Entries *****");
+        // console.log(result);
+        // console.log(fields);
+        // console.log("***** DELETED Previous MySql DB Entries *****");
       } catch (err) {
         console.log(err);
       }
@@ -60,9 +60,9 @@ async function resetAutoIncrementDB(){
         // Prepared statement
         const [result, fields] = await connection.execute(sql);
       
-        console.log(result);
-        console.log(fields);
-        console.log("***** RESET Auto increment MySql DB *****");
+        // console.log(result);
+        // console.log(fields);
+        // console.log("***** RESET Auto increment MySql DB *****");
       } catch (err) {
         console.log(err);
       }
@@ -83,7 +83,7 @@ async function updateDB(){
 }
 
 export async function querySqlDB(mainTag, modelTag, fullTitleText) {
-    console.log("Writing to MySql database...")
+    //console.log("Writing to MySql database...")
     writeToDB(mainTag, modelTag, fullTitleText);
     //updateDB();
 }
