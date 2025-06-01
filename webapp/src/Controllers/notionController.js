@@ -34,7 +34,7 @@ const systemTag = "Skeletal"
 //const mainTag = "Skull"
 const mainTag = ""
 //const systemList = ["Skeletal", "Muscular", "Nervous"]
-const systemList = ["Skeletal", "Muscular"]
+const systemList = ["Skeletal"]
 //const mainLists = [["Skull", "Spinal", ""]]
 var systemCount = 0;
 var systemComplete = false;
@@ -43,6 +43,10 @@ let fullBodyText = "";
 /* 
 ---------------------------------------------------------------------------
 */
+
+// A utility function to create a promise that resolves after a delay
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const delayMs = 3500; // 3.5 seconds
 
 async function queryDatabase(databaseId, system) {
   //console.log("Querying Notion database...")
@@ -62,6 +66,38 @@ async function queryDatabase(databaseId, system) {
     },
   })
 
+  let resultCount = 0;
+  
+  anatomyWikiDB.results.forEach((page) => {
+
+    resultCount++;
+
+    if(resultCount == anatomyWikiDB.results.length)
+    {
+      console.log("Last Result for " + system +" System is: " + page.id);
+    }
+    else
+    {
+      // Page ID
+      console.log("Page ID: " + page.id);
+    }
+
+    page.properties['Model Tags'].multi_select.reduce(async (previousPromise, model_tag_name) => {
+      await previousPromise;
+      var modelTag = model_tag_name.name;
+      console.log("Model Tag Name: " + modelTag);
+
+      getPageProperties(page.id, modelTag);
+      // Return a new promise that resolves after the delay for the current item
+      return delay(delayMs);
+    }, Promise.resolve()) // Start with an immediately resolving promise
+    .then(() => {
+    console.log("All tasks completed!");
+});
+
+  })
+
+  /*
   await Promise.all(anatomyWikiDB.results.map(async page => {
     // Page ID
     //console.log("Page ID: " + page.id);
@@ -82,7 +118,7 @@ async function queryDatabase(databaseId, system) {
     //console.log("Page ID: " + page.properties['Model Tags'].multi_select[0].name);
 
   }));
-
+*/
   //console.log(anatomyWikiDB)
 
   // var pageIdResult = anatomyWikiDB.results[0].id;
@@ -114,7 +150,7 @@ async function getPageProperties(pageid, modelTag) {
     block_id: pageid,
   });
 
-  //console.log(response);
+  console.log(response);
 
   if(pageContent.has_children){
     const response = await notion.blocks.children.list({
@@ -196,6 +232,7 @@ async function getPageProperties(pageid, modelTag) {
   fullBodyText = "";
 
   //console.log("Page title: " + response.properties.Page.title[0].plain_text);
+
 }
 
 export async function queryNotionDB() {
