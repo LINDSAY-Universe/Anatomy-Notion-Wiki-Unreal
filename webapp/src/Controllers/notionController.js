@@ -34,7 +34,7 @@ const systemTag = "Skeletal"
 //const mainTag = "Skull"
 const mainTag = ""
 //const systemList = ["Skeletal", "Muscular", "Nervous"]
-const systemList = ["Skeletal"]
+const systemList = ["Skeletal", "Muscular"]
 //const mainLists = [["Skull", "Spinal", ""]]
 var systemCount = 0;
 var systemComplete = false;
@@ -46,10 +46,11 @@ let fullBodyText = "";
 
 // A utility function to create a promise that resolves after a delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-const delayMs = 3500; // 3.5 seconds
+const delayMs = 350;
+var delayStack = delayMs;
+var startTime = 0;
 
 async function queryDatabase(databaseId, system) {
-  //console.log("Querying Notion database...")
   // This query will filter database entries and return pages that match. Use multiple filters with the AND/OR options: https://developers.notion.com/reference/post-database-query-filter.
   const anatomyWikiDB = await notion.databases.query({
     database_id: databaseId,
@@ -57,12 +58,7 @@ async function queryDatabase(databaseId, system) {
       property: "Tags",
       multi_select: {
         contains: system,
-        //contains: mainTag,
       },
-      // property: "Model Tags",
-      // multi_select: {
-      //   contains: "B_Sphenoid_Bone",
-      // },
     },
   })
 
@@ -79,20 +75,20 @@ async function queryDatabase(databaseId, system) {
     else
     {
       // Page ID
-      console.log("Page ID: " + page.id);
+      //console.log("Page ID: " + page.id);
     }
 
     page.properties['Model Tags'].multi_select.reduce(async (previousPromise, model_tag_name) => {
       await previousPromise;
       var modelTag = model_tag_name.name;
-      console.log("Model Tag Name: " + modelTag);
+      //console.log("Model Tag Name: " + modelTag);
 
       getPageProperties(page.id, modelTag);
       // Return a new promise that resolves after the delay for the current item
       return delay(delayMs);
     }, Promise.resolve()) // Start with an immediately resolving promise
     .then(() => {
-    console.log("All tasks completed!");
+    console.log("All tasks completed for Page ID: "+page.id);
 });
 
   })
@@ -119,14 +115,6 @@ async function queryDatabase(databaseId, system) {
 
   }));
 */
-  //console.log(anatomyWikiDB)
-
-  // var pageIdResult = anatomyWikiDB.results[0].id;
-  // console.log("Page ID: "+ pageIdResult);
-  // Get Model Tags property name
-  // NOTE: this is using the 1st result and does not account for multiple tag names
-  // var modelTagName = anatomyWikiDB.results[0].properties['Model Tags'].multi_select[0].name;
-  // console.log("Model Tag name: "+modelTagName);
 
   // Change filter to next system in the systemList
   systemCount++;
@@ -144,13 +132,24 @@ function getPromiseState(promise) {
 
 async function getPageProperties(pageid, modelTag) {
 
-  const response = await notion.pages.retrieve({ page_id: pageid });
+   if(startTime==0){
+    startTime = Date.now();
+    completionCheck();
+   } 
 
+  const response = await notion.pages.retrieve({ page_id: pageid });
+  delayStack = delayStack + delayMs;
+  //console.log("First Pause: "+pageid+" Time: "+delayStack);
+  await delay(delayStack);
+  
   const pageContent = await notion.blocks.retrieve({
     block_id: pageid,
   });
-
-  console.log(response);
+  delayStack = delayStack + delayMs;
+  // Times by 1.5 to give the aync requests to Notion time to complete
+  //console.log("Second Pause: "+pageid+" Time: "+delayStack*1.5);
+  await delay(delayStack);
+  //console.log(response);
 
   if(pageContent.has_children){
     const response = await notion.blocks.children.list({
@@ -189,27 +188,8 @@ async function getPageProperties(pageid, modelTag) {
             fullBodyText = fullBodyText + "• " + response.results[itemIndex].bulleted_list_item.rich_text[0].plain_text + "\n";
           }
         }
-      }
+      }  
       
-    // console.log(response.results[0].synced_block);
-    // if(blockInfo != null){
-    //   let syncedFrom = blockInfo.synced_from;
-    //   console.log("SYNCED_FROM: "+blockInfo.synced_from);
-    //   for(const item in syncedFrom){
-    //     if(item == "block_id"){
-    //       console.log("BLOCK_ID: "+blockInfo.synced_from.block_id);
-    //     }
-    //   }
-    //   //console.log("BLOCK_ID: "+syncedFrom.block_id);      
-    // }
-    // console.log(response.results[0].synced_block.synced_from);
-    // console.log(response.results[1].paragraph);
-    //console.log(response.results[0].synced_block.synced_from.block_id);
-    // const response_synced = await notion.blocks.children.list({
-    //   block_id: response.results[0].synced_block.synced_from.block_id,
-    //   page_size: 50,
-    // });
-    // console.log(response_synced);
   }
 
   // Get and format title text
@@ -241,3 +221,16 @@ export async function queryNotionDB() {
     await queryDatabase(databaseId, system);
   }
 }
+
+async function completionCheck(){
+    const elapsedTime = Date.now() - startTime + delayMs;
+    console.log("Elapsed time: "+elapsedTime/1000+"s");
+    // Times by 1.5 to give the aync requests to Notion time to complete
+    if(delayStack*1.5 < elapsedTime){
+          console.log("Data acquisition from Notion is COMPLETE!!!!!!!!!!!!!!!!!");
+    } else {
+      await delay(1000);
+      completionCheck();
+    }
+}
+
