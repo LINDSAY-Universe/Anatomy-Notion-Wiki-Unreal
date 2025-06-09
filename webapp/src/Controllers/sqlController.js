@@ -1,18 +1,27 @@
 import mysql from 'mysql2/promise';
 
 // HARD CODED from MySql setup script
-const sqlTable = "AnatomyInfo"
+const sqlTable = "anatomyinfo"
 const firstCol = "ModelTag"
 const secondCol = "TextInfo"
 
 // Create the connection to database
 const connection = await mysql.createConnection({
-    host: 'localhost',
+  // local or remote
+    // host: 'localhost',
+    host: 'mysql.us.stackcp.com',
+
+  // local
     // user: 'root',
     // password: 'MhYOd#Id&$y$$74l',
-    user: 'BMEAnatomyOne',
-    password: 'anatomyBioMed$77',
-    database: 'anatomy_wiki_db',
+    // user: 'BMEAnatomyOne',
+    // password: 'anatomyBioMed$77',
+    // database: 'anatomy_wiki_db',
+  // remote
+    user: 'anatomy_wiki_db-35303934a877',
+    password: 'ivg6s7mcew',
+    database: 'anatomy_wiki_db-35303934a877',
+    port: '39544'
 });
 
 console.log("Connected to MySQL DB!!!!!")
