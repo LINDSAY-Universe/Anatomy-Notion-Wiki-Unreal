@@ -9,7 +9,8 @@ const secondCol = "TextInfo"
 const connection = await mysql.createConnection({
   // local or remote
     // host: 'localhost',
-    host: 'mysql.us.stackcp.com',
+    // host: 'mysql.us.stackcp.com',
+    host: 'database-1.ct2csa0oitno.us-east-2.rds.amazonaws.com',
 
   // local
     // user: 'root',
@@ -18,10 +19,14 @@ const connection = await mysql.createConnection({
     // password: 'anatomyBioMed$77',
     // database: 'anatomy_wiki_db',
   // remote
-    user: 'anatomy_wiki_db-35303934a877',
-    password: 'ivg6s7mcew',
-    database: 'anatomy_wiki_db-35303934a877',
-    port: '39544'
+    // user: 'anatomy_wiki_db-35303934a877',
+    // password: 'ivg6s7mcew',
+    // database: 'anatomy_wiki_db-35303934a877',
+    // port: '39544'
+    user: 'BMEAnatomyOne',
+    password: 'anatomyBioMed$77',
+    database: 'anatomy_wiki_db',
+    port: '3306'
 });
 
 console.log("Connected to MySQL DB!!!!!")
